@@ -1,0 +1,118 @@
+<meta charset="utf-8">
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<div id="picker">
+    Select a GHC verbose log file with "!!! " timing entries:
+    <input type="file" id="fileInput">
+</div>
+
+<div id="chart" style="visibility: hidden;">
+    <p style="margin=10px;">Click on a node to zoom in. Right click to zoom out</p>
+    <div id="chart_div">Processing...</div>
+</div>
+
+
+<script>
+google.charts.load('current', {'packages':['treemap']});
+//google.charts.setOnLoadCallback(drawChart);
+
+
+var fileInput = document.getElementById('fileInput');
+fileInput.addEventListener('change', function(e) {
+    var file = fileInput.files[0];
+    var textType = /text.*/;
+
+    if (file.type.match(textType)) {
+        var reader = new FileReader();
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'ID');
+        data.addColumn('string', 'Parent');
+        data.addColumn('number', 'Time (ms)');
+        // label for graph and nesting reference:
+        var graphLabel = 'Build timing breakdown'
+        data.addRows([[graphLabel, null, 0]]);
+
+        var grpsSet = new Set();
+
+        reader.onload = function(e) {
+            document.getElementById("chart").style.visibility = "visible";
+            document.getElementById("picker").style.visibility = "hidden";
+            console.log("Processing...")
+
+            // N.B. first match occasionally contains newlines:
+            var regexp = /^!!! ([\s\S]*?): finished in (\d+\.?\d*) milliseconds, allocated (\d+\.?\d*) megabytes/gm;
+            var recordCnt = 0;
+            // use replace() just for iteration with matching groups:
+            reader.result.replace(regexp, function(m, fullNameDirty, ms, mb){ 
+                var fullName = fullNameDirty.replace(/[\s]+/g," ");
+                var grpName = fullName.match(/^[a-zA-Z ]+/)[0];
+                
+                // since the id has to be unique for each row, we just append the record number to fullName:
+                var label = recordCnt+": "+fullName;
+                data.addRows([[label, grpName, parseFloat(ms)]]);
+                grpsSet.add(grpName);
+
+                recordCnt++;
+                // console.log(label, fullName,grpName,ms,mb); 
+            });
+            // Defines the top-level groupings we see:
+            for (let grpName of grpsSet) {
+              data.addRows([[grpName, graphLabel, null]]);
+            }
+
+            console.log("records parsed", recordCnt);
+
+            drawChart(data);
+        }
+
+        reader.readAsText(file);	
+    } else {
+        alert("Please choose a log file from `ghc -v`");
+    }
+});
+
+
+function drawChart(data) {
+  // FYI the google charts example:
+  // var data = new google.visualization.DataTable();
+  // data.addColumn('string', 'ID');
+  // data.addColumn('string', 'Parent');
+  // data.addColumn('number', 'Number Of Lines');
+  // data.addRows([
+  //  ['Shakespeare', null, 0],
+  //
+  //  ['Comedies', 'Shakespeare', null],
+  //  ['Tragedies', 'Shakespeare', null],
+  //  ['Histories', 'Shakespeare', null],
+  //
+  //  ['As You Like It', 'Comedies', null],
+  //  ['Adam', 'As You Like It', 10],
+  //  ['Amiens', 'As You Like It', 10],
+  //  ['Audrey', 'As You Like It', 12],
+  //  ... etc
+
+  var tree = new google.visualization.TreeMap(document.getElementById('chart_div'));
+
+  var options = {
+    fontSize: 16,
+    fontColor: "#111111",
+    highlightOnMouseOver: true,
+    maxDepth: 1,
+    maxPostDepth: 2,
+    minHighlightColor: '#8c6bb1',
+    midHighlightColor: '#9ebcda',
+    maxHighlightColor: '#edf8fb',
+    minColor: '#009688',
+    midColor: '#f7f7f7',
+    maxColor: '#ee0100',
+    headerHeight: 15,
+    showScale: true,
+    height: 800,
+    hintOpacity: 0
+  };
+
+  tree.draw(data, options);
+
+}
+</script>
