@@ -47,7 +47,7 @@ fileInput.addEventListener('change', function(e) {
             // use replace() just for iteration with matching groups:
             reader.result.replace(regexp, function(m, fullNameDirty, ms, mb){ 
                 var fullName = fullNameDirty.replace(/[\s]+/g," ");
-                var grpName = fullName.match(/^[a-zA-Z ]+/)[0];
+                var grpName = fullName.match(/^[a-zA-Z/ ]+/)[0];
                 
                 // since the id has to be unique for each row, we just append the record number to fullName:
                 var label = recordCnt+": "+fullName;
