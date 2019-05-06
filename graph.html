@@ -25,7 +25,8 @@ fileInput.addEventListener('change', function(e) {
     if (file.type.match(textType)) {
         var reader = new FileReader();
 
-        var data = new google.visualization.DataTable();
+        // N.B. global for use in showFullTooltip:
+        data = new google.visualization.DataTable();
         data.addColumn('string', 'ID');
         data.addColumn('string', 'Parent');
         data.addColumn('number', 'Time (ms)');
@@ -109,10 +110,20 @@ function drawChart(data) {
     headerHeight: 15,
     showScale: true,
     height: 800,
+    generateTooltip: showFullTooltip,
     hintOpacity: 0
   };
 
   tree.draw(data, options);
 
 }
+
+function showFullTooltip(row, size, value) {
+  return '<div style="background:#fd9; padding:10px; border-style:solid">' +
+         '<b>' + data.getValue(row, 0) + '</b><br>' +
+         'Total time (this cell and its children): ' + size + " ms" + '<br>' +
+     ' </div>';
+}
+
+
 </script>
