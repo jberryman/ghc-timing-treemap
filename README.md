@@ -6,9 +6,9 @@ look like:
     !!! Simplifier [Data.Binary.Class]: finished in 873.97 milliseconds, allocated 563.867 megabytes
     ...etc
 
-You can open `graph.html` in your browser and open a log file containing such
-records and it will parse and visualize the results, producing a treemap plot
-like:
+You can open `index.html` in your browser (hosted [here](https://jberryman.github.io/ghc-timing-treemap/)) 
+and open a log file containing such records and it will parse and visualize the
+results, producing a treemap plot like:
 
 ![example graph](example.png)
 
